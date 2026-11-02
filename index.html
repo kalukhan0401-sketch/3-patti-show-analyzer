@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3 Patti Show Analyzer</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101820;color:white;font-family:Arial,sans-serif;padding:16px}
+header{text-align:center;color:#f5c542;padding:15px}
+h1{font-size:25px}
+.card{background:#1c2b36;padding:18px;border-radius:14px;margin:14px 0}
+label{display:block;margin:12px 0 6px}
+select,input,button{width:100%;padding:13px;border-radius:8px;border:0;font-size:16px}
+select,input{background:#fff;color:#111}
+button{background:#e5b832;color:#111;font-weight:bold;margin-top:15px}
+.result{text-align:center;font-size:23px;color:#f5c542;padding:12px}
+.stats{display:flex;gap:8px;text-align:center}
+.stats div{flex:1;background:#263b49;padding:12px;border-radius:9px}
+.small{color:#bbb;font-size:13px}
+table{width:100%;border-collapse:collapse;text-align:center}
+td,th{padding:9px;border-bottom:1px solid #445}
+.danger{background:#a83232;color:white}
+</style>
+</head>
+<body>
+
+<header>
+<h1>♠ 3 PATTI SHOW ANALYZER ♠</h1>
+<p>DRAGON 🐉 VS TIGER 🐅</p>
+</header>
+
+<div class="card">
+<h3>Enter Round Details</h3>
+
+<label>Dragon Card</label>
+<select id="dragon"></select>
+
+<label>Tiger Card</label>
+<select id="tiger"></select>
+
+<button onclick="addRound()">ADD ROUND</button>
+<div class="result" id="result">Winner: Waiting</div>
+</div>
+
+<div class="card">
+<h3>Statistics</h3>
+<div class="stats">
+<div>Dragon Wins<br><b id="dw">0</b></div>
+<div>Tiger Wins<br><b id="tw">0</b></div>
+<div>Tie<br><b id="ties">0</b></div>
+</div>
+<p>Total Rounds: <b id="total">0</b></p>
+</div>
+
+<div class="card">
+<h3>Round History</h3>
+<table>
+<thead>
+<tr><th>#</th><th>Dragon</th><th>Tiger</th><th>Winner</th></tr>
+</thead>
+<tbody id="history"></tbody>
+</table>
+<button class="danger" onclick="clearHistory()">CLEAR HISTORY</button>
+<p class="small">Records are saved on this device.</p>
+</div>
+
+<script>
+const cards=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+
+const dragon=document.getElementById("dragon");
+const tiger=document.getElementById("tiger");
+
+cards.forEach(c=>{
+dragon.add(new Option(c,c));
+tiger.add(new Option(c,c));
+});
+
+function rank(c){
+return cards.indexOf(c);
+}
+
+let rounds=[];
+try{
+rounds=JSON.parse(localStorage.getItem("dt_rounds")||"[]");
+if(!Array.isArray(rounds)) rounds=[];
+}catch(e){rounds=[];}
+
+function addRound(){
+let d=dragon.value;
+let t=tiger.value;
+
+let winner=rank(d)>rank(t)?"Dragon":
+rank(t)>rank(d)?"Tiger":"Tie";
+
+rounds.push({d,t,winner});
+
+localStorage.setItem("dt_rounds",JSON.stringify(rounds));
+
+document.getElementById("result").innerText="Winner: "+winner;
+render();
+}
+
+function render(){
+let dw=0,tw=0,ties=0;
+
+document.getElementById("history").innerHTML="";
+
+rounds.forEach((r,i)=>{
+if(r.winner==="Dragon")dw++;
+else if(r.winner==="Tiger")tw++;
+else ties++;
+
+let tr=document.createElement("tr");
+[i+1,r.d,r.t,r.winner].forEach(v=>{
+let td=document.createElement("td");
+td.textContent=v;
+tr.appendChild(td);
+});
+document.getElementById("history").appendChild(tr);
+});
+
+document.getElementById("dw").innerText=dw;
+document.getElementById("tw").innerText=tw;
+document.getElementById("ties").innerText=ties;
+document.getElementById("total").innerText=rounds.length;
+}
+
+function clearHistory(){
+if(confirm("Delete all saved rounds?")){
+rounds=[];
+localStorage.removeItem("dt_rounds");
+document.getElementById("result").innerText="Winner: Waiting";
+render();
+}
+}
+
+render();
+</script>
+</body>
+</html>
